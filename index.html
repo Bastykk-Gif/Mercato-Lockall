@@ -37,13 +37,13 @@
   .subtitle {
     color: var(--muted);
     font-size: 0.9rem;
-    margin: 0 0 20px 0;
+    margin: 0 0 14px 0;
   }
 
   .toolbar {
     display: flex;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
     align-items: center;
   }
@@ -64,6 +64,200 @@
     border-color: #1f2937;
   }
   button.toolbar-btn.primary:hover { background: #374151; }
+
+  #syncBadge {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eee;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  #syncBadge.ok { background: #e3f7ea; color: #1b7a3d; }
+  #syncBadge.local { background: #fff4de; color: #8a5a00; }
+  #syncBadge.error { background: #fdeaea; color: #b3261e; }
+
+  details.setup {
+    margin-bottom: 20px;
+    background: #f8f9fb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--ink);
+  }
+  details.setup summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  details.setup ol {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+  details.setup li { margin-bottom: 6px; }
+  details.setup code, details.setup pre {
+    background: #eef0f3;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+  }
+  details.setup pre {
+    padding: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  .page-layout {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+  }
+
+  .main-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .snapshots-panel {
+    width: 230px;
+    flex-shrink: 0;
+    background: #f8f9fb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .page-layout {
+      flex-direction: column;
+    }
+    .snapshots-panel {
+      width: 100%;
+    }
+  }
+
+  .snapshots-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  button.toolbar-btn.small {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .snapshots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .snapshots-empty {
+    font-size: 0.78rem;
+    color: var(--muted);
+    padding: 6px 2px;
+  }
+
+  .snapshot-card {
+    background: #fff;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    aspect-ratio: 16 / 7;
+    justify-content: space-between;
+  }
+
+  .snapshot-card.favorite {
+    border-color: #f5a623;
+    background: #fffdf5;
+  }
+
+  .snapshot-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .snapshot-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .snapshot-name-input {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    border: 1px solid #9aa5b1;
+    border-radius: 5px;
+    padding: 1px 4px;
+    width: 100%;
+  }
+
+  .snapshot-actions-top {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .star-btn {
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #c9ccd1;
+    line-height: 1;
+    padding: 0;
+  }
+  .star-btn.active {
+    color: #f5a623;
+  }
+
+  .snapshot-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .snapshot-date {
+    font-size: 0.68rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .snapshot-actions-bottom {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .snapshot-load-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .snapshot-load-btn:hover { background: #f0f0f0; }
 
   #pool {
     background: var(--pool-bg);
@@ -348,67 +542,101 @@
     <button class="toolbar-btn primary" id="addPersonBtn">+ Ajouter une personne</button>
     <button class="toolbar-btn primary" id="addSiteBtn">+ Ajouter un site</button>
     <button class="toolbar-btn" id="resetBtn">Tout réinitialiser</button>
+    <span id="syncBadge">…</span>
   </div>
 
-  <div id="pool">
-    <div class="pool-label">À répartir</div>
-  </div>
+  <details class="setup" id="setupDetails">
+    <summary>Activer la sauvegarde partagée entre tous les utilisateurs (Firebase, gratuit)</summary>
+    <ol>
+      <li>Aller sur <code>console.firebase.google.com</code> → « Ajouter un projet » → lui donner un nom (ex. <code>repartition-sites</code>) → Créer (l'étape Google Analytics peut être désactivée).</li>
+      <li>Dans le projet : menu <code>Build</code> → <code>Firestore Database</code> → « Créer une base de données » → mode « test » → choisir une région → Activer.</li>
+      <li>Aller dans <code>Paramètres du projet</code> (icône ⚙) → onglet « Général » → section « Vos applications » → cliquer sur l'icône Web <code>&lt;/&gt;</code> → donner un nom → Enregistrer l'application. Copier l'objet <code>firebaseConfig</code> affiché.</li>
+      <li>Dans le code de cette page, remplacer la ligne <code>const FIREBASE_CONFIG = null;</code> par <code>const FIREBASE_CONFIG = { ...l'objet copié... };</code>, puis enregistrer/committer le fichier.</li>
+      <li>Dans Firestore → onglet « Règles », remplacer par :
+        <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /repartition/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        puis « Publier ». (Ces règles rendent les données modifiables par quiconque connaît l'URL de la page — adapté à un outil interne, pas à des données sensibles.)
+      </li>
+    </ol>
+    <p>Tant que cette configuration n'est pas faite, vos modifications sont sauvegardées uniquement dans ce navigateur (elles ne sont pas visibles par vos collègues).</p>
+  </details>
 
-  <div id="sites-grid"></div>
+  <div class="page-layout">
+    <div class="main-col">
+      <div id="pool">
+        <div class="pool-label">À répartir</div>
+      </div>
+
+      <div id="sites-grid"></div>
+    </div>
+
+    <aside class="snapshots-panel">
+      <div class="snapshots-header">
+        <span>Sauvegardes</span>
+        <button class="toolbar-btn primary small" id="newSnapshotBtn">+ Nouvelle</button>
+      </div>
+      <div class="snapshots-list" id="snapshotsList"></div>
+    </aside>
+  </div>
 
   <div class="modal-overlay hidden" id="modalOverlay">
     <div class="modal-box" id="modalBox"></div>
   </div>
 
-<script>
-  const SITES = [
-    { id: "argenteuil", name: "Argenteuil",  bg: "#ffe3e8", border: "#fd6c7e" },
-    { id: "cergy",      name: "Cergy",       bg: "#fde3fb", border: "#fc76f4" },
-    { id: "paris8",     name: "Paris 8",     bg: "#e6f0ff", border: "#5ea3fc" },
-    { id: "paris13",    name: "Paris 13",    bg: "#eceff1", border: "#78909c" },
-    { id: "poissy",     name: "Poissy",      bg: "#ecffe0", border: "#86fb5b" },
-    { id: "velizy",     name: "Vélizy",      bg: "#e0fdff", border: "#48ecf5" },
-    { id: "lognes",     name: "Lognes",      bg: "#fff0fd", border: "#ffccff" },
-    { id: "suresnes",   name: "Suresnes",    bg: "#fffbdb", border: "#f8e717" },
-    { id: "perfcenter", name: "Perf Center", bg: "#e2f9ec", border: "#34d381" },
-  ];
+<script type="module">
+  // ============================================================
+  // Sauvegarde partagée (optionnelle) — voir le panneau "Activer
+  // la sauvegarde partagée" en haut de la page pour la configurer.
+  // Tant que FIREBASE_CONFIG vaut null, la page fonctionne quand
+  // même : les modifications sont sauvegardées dans ce navigateur
+  // (localStorage) mais ne sont pas partagées entre utilisateurs.
+  // ============================================================
+  const FIREBASE_CONFIG = null;
 
-  const COLUMN_OF_SITE = {
-    argenteuil: 0, cergy: 0, poissy: 0, suresnes: 0,
-    lognes: 1, paris8: 1, paris13: 1, velizy: 1,
-    perfcenter: 2,
-  };
+  const LOCAL_STORAGE_KEY = "repartition-sites-state-v1";
 
-  const PEOPLE = [
-    "Chamsidine", "Christ-Evan", "Mahamadou", "Karl-Yann", "Basma", "Bintou",
-    "Chiara", "Imane", "Maeliss", "Malcom", "Lyna", "Léo", "Nathan",
-    "Amauray", "Alyssandre", "Kessie", "Christian",
-    "Mohamed", "Onassis", "Sarra", "Alban", "Marouane",
-    "A recruter", "A recruter"
-  ];
+  function defaultState() {
+    const sites = [
+      { id: "argenteuil", name: "Argenteuil",  bg: "#ffe3e8", border: "#fd6c7e", column: 0 },
+      { id: "cergy",      name: "Cergy",       bg: "#fde3fb", border: "#fc76f4", column: 0 },
+      { id: "poissy",     name: "Poissy",      bg: "#ecffe0", border: "#86fb5b", column: 0 },
+      { id: "suresnes",   name: "Suresnes",    bg: "#fffbdb", border: "#f8e717", column: 0 },
+      { id: "lognes",     name: "Lognes",      bg: "#fff0fd", border: "#ffccff", column: 1 },
+      { id: "paris8",     name: "Paris 8",     bg: "#e6f0ff", border: "#5ea3fc", column: 1 },
+      { id: "paris13",    name: "Paris 13",    bg: "#eceff1", border: "#78909c", column: 1 },
+      { id: "velizy",     name: "Vélizy",      bg: "#e0fdff", border: "#48ecf5", column: 1 },
+      { id: "perfcenter", name: "Perf Center", bg: "#e2f9ec", border: "#34d381", column: 2 },
+    ];
 
-  const grid = document.getElementById("sites-grid");
-  const pool = document.getElementById("pool");
-  const modalOverlay = document.getElementById("modalOverlay");
-  const modalBox = document.getElementById("modalBox");
+    const names = [
+      "Chamsidine", "Christ-Evan", "Mahamadou", "Karl-Yann", "Basma", "Bintou",
+      "Chiara", "Imane", "Maeliss", "Malcom", "Lyna", "Léo", "Nathan",
+      "Amauray", "Alyssandre", "Kessie", "Christian",
+      "Mohamed", "Onassis", "Sarra", "Alban", "Marouane",
+    ];
 
-  let pastilleCounter = 0;
-  let siteCounter = 0;
+    const people = names.map((name, i) => ({
+      id: "p-" + i + "-" + name.toLowerCase().replace(/[^a-z]+/g, ""),
+      name,
+      recruter: false,
+      location: "pool",
+    }));
+    people.push({ id: "p-recruter-1", name: "A recruter", recruter: true, location: "pool" });
+    people.push({ id: "p-recruter-2", name: "A recruter", recruter: true, location: "pool" });
 
-  // --- Columns setup ---
-  const columnEls = [0, 1, 2].map(() => {
-    const col = document.createElement("div");
-    col.className = "site-column";
-    grid.appendChild(col);
-    return col;
-  });
+    return { sites, people, snapshots: [] };
+  }
 
-  function slugify(str) {
-    return str
-      .normalize("NFD").replace(/[̀-ͯ]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "") || "site";
+  let STATE = defaultState();
+
+  function genId(prefix) {
+    return prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   }
 
   function lightenHex(hex, ratio) {
@@ -421,7 +649,208 @@
     return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
   }
 
-  // --- Build a site element ---
+  // --- DOM refs ---
+  const grid = document.getElementById("sites-grid");
+  const pool = document.getElementById("pool");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalBox = document.getElementById("modalBox");
+  const syncBadge = document.getElementById("syncBadge");
+
+  const columnEls = [0, 1, 2].map(() => {
+    const col = document.createElement("div");
+    col.className = "site-column";
+    grid.appendChild(col);
+    return col;
+  });
+
+  // --- Local persistence (always active as a safety net / offline fallback) ---
+  function persistLocal() {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(STATE));
+    } catch (e) {
+      // localStorage can be unavailable (e.g. sandboxed preview) — fail silently.
+    }
+  }
+
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (raw) STATE = JSON.parse(raw);
+    } catch (e) {
+      // ignore corrupt/unavailable storage
+    }
+    ensureSnapshots();
+  }
+
+  function ensureSnapshots() {
+    if (!Array.isArray(STATE.snapshots)) STATE.snapshots = [];
+  }
+
+  // --- Remote (Firebase) wiring ---
+  let firebaseReady = false;
+  let remoteDocRef = null;
+  let setDocFn = null;
+  let onSnapshotFn = null;
+
+  function updateSyncBadge(mode) {
+    syncBadge.classList.remove("ok", "local", "error");
+    if (mode === "ok") {
+      syncBadge.textContent = "🟢 Sauvegarde partagée active";
+      syncBadge.classList.add("ok");
+    } else if (mode === "error") {
+      syncBadge.textContent = "⚠️ Sauvegarde locale (erreur de connexion partagée)";
+      syncBadge.classList.add("error");
+    } else {
+      syncBadge.textContent = "🟡 Sauvegarde locale (ce navigateur uniquement)";
+      syncBadge.classList.add("local");
+    }
+  }
+
+  async function initFirebase() {
+    if (!FIREBASE_CONFIG) {
+      loadLocal();
+      renderAll();
+      updateSyncBadge("local");
+      return;
+    }
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js");
+      const { getFirestore, doc, setDoc, getDoc, onSnapshot } =
+        await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js");
+
+      const app = initializeApp(FIREBASE_CONFIG);
+      const db = getFirestore(app);
+      remoteDocRef = doc(db, "repartition", "state");
+      setDocFn = setDoc;
+      onSnapshotFn = onSnapshot;
+
+      const snap = await getDoc(remoteDocRef);
+      if (snap.exists()) {
+        STATE = snap.data();
+        ensureSnapshots();
+      } else {
+        loadLocal();
+        await setDoc(remoteDocRef, STATE);
+      }
+      persistLocal();
+      renderAll();
+      updateSyncBadge("ok");
+      firebaseReady = true;
+
+      onSnapshot(remoteDocRef, (s) => {
+        if (!s.exists()) return;
+        STATE = s.data();
+        ensureSnapshots();
+        persistLocal();
+        renderAll();
+      });
+    } catch (err) {
+      console.error("Firebase indisponible :", err);
+      loadLocal();
+      renderAll();
+      updateSyncBadge("error");
+    }
+  }
+
+  function saveState() {
+    persistLocal();
+    renderAll();
+    if (firebaseReady && remoteDocRef && setDocFn) {
+      setDocFn(remoteDocRef, STATE).catch((err) => {
+        console.error("Erreur de synchronisation :", err);
+        updateSyncBadge("error");
+      });
+    }
+  }
+
+  // --- Two-step ("double validation") delete buttons ---
+  const armedButtons = new Set();
+
+  function armTwoStepButton(btn, idleLabel, confirmLabel, onConfirm) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (btn.classList.contains("armed")) {
+        disarm(btn, idleLabel);
+        onConfirm();
+      } else {
+        armedButtons.forEach((other) => {
+          if (other !== btn) disarmEntry(other);
+        });
+        btn.classList.add("armed");
+        btn.textContent = confirmLabel;
+        btn._twoStepTimeout = setTimeout(() => disarm(btn, idleLabel), 3500);
+        btn._twoStepIdleLabel = idleLabel;
+        armedButtons.add(btn);
+      }
+    });
+  }
+  function disarm(btn, idleLabel) {
+    btn.classList.remove("armed");
+    btn.textContent = idleLabel;
+    clearTimeout(btn._twoStepTimeout);
+    armedButtons.delete(btn);
+  }
+  function disarmEntry(btn) {
+    disarm(btn, btn._twoStepIdleLabel || "✕");
+  }
+  document.addEventListener("click", () => {
+    armedButtons.forEach((btn) => disarmEntry(btn));
+  });
+
+  // --- Rendering ---
+  function makePastilleEl(person) {
+    const p = document.createElement("div");
+    p.className = "pastille" + (person.recruter ? " recruter" : "");
+    p.dataset.personId = person.id;
+
+    const label = document.createElement("span");
+    label.textContent = person.name;
+    p.appendChild(label);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "pastille-del";
+    delBtn.type = "button";
+    delBtn.textContent = "✕";
+    delBtn.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    armTwoStepButton(delBtn, "✕", "Suppr. ?", () => {
+      STATE.people = STATE.people.filter((x) => x.id !== person.id);
+      saveState();
+    });
+    p.appendChild(delBtn);
+
+    p.draggable = true;
+    p.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", person.id);
+      e.dataTransfer.effectAllowed = "move";
+      setTimeout(() => p.classList.add("dragging"), 0);
+    });
+    p.addEventListener("dragend", () => p.classList.remove("dragging"));
+
+    return p;
+  }
+
+  function registerDropZone(zone, zoneId) {
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const personId = e.dataTransfer.getData("text/plain");
+      const person = STATE.people.find((x) => x.id === personId);
+      if (person) {
+        person.location = zoneId;
+        saveState();
+      }
+    });
+  }
+
   function buildSiteEl(site) {
     const el = document.createElement("div");
     el.className = "site";
@@ -436,161 +865,213 @@
           <button class="icon-btn" data-del-site title="Supprimer ce site">✕</button>
         </div>
       </div>
-      <div class="site-drop" data-drop></div>
+      <div class="site-drop" data-drop data-site-id="${site.id}"></div>
     `;
-
     const dropZone = el.querySelector("[data-drop]");
-    registerDropZone(dropZone);
+    registerDropZone(dropZone, site.id);
 
     const delBtn = el.querySelector("[data-del-site]");
     armTwoStepButton(delBtn, "✕", "Confirmer ?", () => {
-      // Move all occupants back to the pool before removing the site
-      dropZone.querySelectorAll(".pastille").forEach(p => pool.appendChild(p));
-      sortPool();
-      el.remove();
-      updateCounts();
+      STATE.people.forEach((p) => {
+        if (p.location === site.id) p.location = "pool";
+      });
+      STATE.sites = STATE.sites.filter((s) => s.id !== site.id);
+      saveState();
     });
-
     return el;
   }
 
-  SITES.forEach(site => {
-    const el = buildSiteEl(site);
-    columnEls[COLUMN_OF_SITE[site.id] ?? 0].appendChild(el);
-  });
-
-  // --- Drag & drop ---
-  function registerDropZone(zone) {
-    zone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      zone.classList.add("drag-over");
-    });
-    zone.addEventListener("dragleave", () => {
-      zone.classList.remove("drag-over");
-    });
-    zone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      zone.classList.remove("drag-over");
-      const id = e.dataTransfer.getData("text/plain");
-      const dragged = document.getElementById(id);
-      if (dragged) {
-        zone.appendChild(dragged);
-        if (zone === pool) sortPool();
-        updateCounts();
-      }
-    });
-  }
-  registerDropZone(pool);
-
-  function makePastille(name, recruter) {
-    pastilleCounter += 1;
-    const p = document.createElement("div");
-    p.className = "pastille" + (recruter ? " recruter" : "");
-    p.id = "pastille-" + pastilleCounter;
-
-    const label = document.createElement("span");
-    label.textContent = name;
-    p.appendChild(label);
-
-    const delBtn = document.createElement("button");
-    delBtn.className = "pastille-del";
-    delBtn.type = "button";
-    delBtn.textContent = "✕";
-    // Prevent this button from ever initiating a native drag
-    delBtn.addEventListener("dragstart", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-    armTwoStepButton(delBtn, "✕", "Suppr. ?", () => {
-      p.remove();
-      updateCounts();
-    });
-    p.appendChild(delBtn);
-
-    p.draggable = true;
-    p.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData("text/plain", p.id);
-      e.dataTransfer.effectAllowed = "move";
-      setTimeout(() => p.classList.add("dragging"), 0);
-    });
-    p.addEventListener("dragend", () => {
-      p.classList.remove("dragging");
-    });
-    return p;
+  function renderAll() {
+    renderBoard();
+    renderSnapshots();
   }
 
-  PEOPLE.forEach((name) => {
-    pool.appendChild(makePastille(name, name === "A recruter"));
-  });
-
-  function sortPool() {
-    const pastilles = Array.from(pool.querySelectorAll(".pastille"));
-    pastilles.sort((a, b) => {
-      const an = a.querySelector("span").textContent;
-      const bn = b.querySelector("span").textContent;
-      return an.localeCompare(bn, "fr", { sensitivity: "base" });
+  function renderBoard() {
+    columnEls.forEach((col) => (col.innerHTML = ""));
+    STATE.sites.forEach((site) => {
+      const el = buildSiteEl(site);
+      const col = columnEls[site.column] || columnEls[0];
+      col.appendChild(el);
     });
-    pastilles.forEach(p => pool.appendChild(p));
-  }
 
-  sortPool();
+    Array.from(pool.querySelectorAll(".pastille")).forEach((p) => p.remove());
+
+    const poolPeople = STATE.people
+      .filter((p) => p.location === "pool")
+      .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }));
+    poolPeople.forEach((p) => pool.appendChild(makePastilleEl(p)));
+
+    STATE.sites.forEach((site) => {
+      const zone = grid.querySelector(`.site-drop[data-site-id="${site.id}"]`);
+      if (!zone) return;
+      STATE.people
+        .filter((p) => p.location === site.id)
+        .forEach((p) => zone.appendChild(makePastilleEl(p)));
+    });
+
+    updateCounts();
+  }
 
   function updateCounts() {
-    document.querySelectorAll(".site").forEach(site => {
+    document.querySelectorAll(".site").forEach((site) => {
       const count = site.querySelectorAll(".pastille").length;
       site.querySelector("[data-count]").textContent = count;
     });
   }
 
+  registerDropZone(pool, "pool");
+
   document.getElementById("resetBtn").addEventListener("click", () => {
-    document.querySelectorAll(".pastille").forEach(p => pool.appendChild(p));
-    sortPool();
-    updateCounts();
+    STATE.people.forEach((p) => (p.location = "pool"));
+    saveState();
   });
 
-  updateCounts();
+  // --- Snapshots (sauvegardes nommées, avec favoris épinglés en haut) ---
+  const snapshotsList = document.getElementById("snapshotsList");
 
-  // --- Two-step ("double validation") delete buttons ---
-  // Click once arms the button (shows a confirm label); click again within
-  // the window performs the action. Clicking anywhere else cancels it.
-  const armedButtons = new Set();
+  function deepClone(obj) {
+    return typeof structuredClone === "function"
+      ? structuredClone(obj)
+      : JSON.parse(JSON.stringify(obj));
+  }
 
-  function armTwoStepButton(btn, idleLabel, confirmLabel, onConfirm) {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (btn.classList.contains("armed")) {
-        disarm(btn, idleLabel);
-        onConfirm();
-      } else {
-        // Disarm any other armed button first
-        armedButtons.forEach(other => {
-          if (other !== btn) disarmEntry(other);
-        });
-        btn.classList.add("armed");
-        btn.textContent = confirmLabel;
-        const timeoutId = setTimeout(() => disarm(btn, idleLabel), 3500);
-        armedButtons.add(btn);
-        btn._twoStepTimeout = timeoutId;
-        btn._twoStepIdleLabel = idleLabel;
-      }
+  function formatSnapshotDate(ts) {
+    try {
+      return new Date(ts).toLocaleString("fr-FR", {
+        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+      });
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function createSnapshot() {
+    const now = Date.now();
+    STATE.snapshots.push({
+      id: genId("snap"),
+      name: "Sauvegarde du " + formatSnapshotDate(now),
+      favorite: false,
+      createdAt: now,
+      data: deepClone({ sites: STATE.sites, people: STATE.people }),
     });
+    saveState();
   }
 
-  function disarm(btn, idleLabel) {
-    btn.classList.remove("armed");
-    btn.textContent = idleLabel;
-    clearTimeout(btn._twoStepTimeout);
-    armedButtons.delete(btn);
+  function restoreSnapshot(id) {
+    const snap = STATE.snapshots.find((s) => s.id === id);
+    if (!snap) return;
+    const cloned = deepClone(snap.data);
+    STATE.sites = cloned.sites;
+    STATE.people = cloned.people;
+    saveState();
   }
 
-  function disarmEntry(btn) {
-    disarm(btn, btn._twoStepIdleLabel || "✕");
+  function renameSnapshot(id, name) {
+    const snap = STATE.snapshots.find((s) => s.id === id);
+    if (!snap) return;
+    snap.name = name || snap.name;
+    saveState();
   }
 
-  document.addEventListener("click", () => {
-    armedButtons.forEach(btn => disarmEntry(btn));
-  });
+  function toggleFavoriteSnapshot(id) {
+    const snap = STATE.snapshots.find((s) => s.id === id);
+    if (!snap) return;
+    snap.favorite = !snap.favorite;
+    saveState();
+  }
+
+  function deleteSnapshot(id) {
+    STATE.snapshots = STATE.snapshots.filter((s) => s.id !== id);
+    saveState();
+  }
+
+  function buildSnapshotCard(snap) {
+    const card = document.createElement("div");
+    card.className = "snapshot-card" + (snap.favorite ? " favorite" : "");
+
+    const top = document.createElement("div");
+    top.className = "snapshot-card-top";
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "snapshot-name";
+    nameEl.textContent = snap.name;
+    nameEl.title = "Double-cliquer pour renommer";
+    nameEl.addEventListener("dblclick", () => {
+      const input = document.createElement("input");
+      input.className = "snapshot-name-input";
+      input.type = "text";
+      input.value = snap.name;
+      nameEl.replaceWith(input);
+      input.focus();
+      input.select();
+      const commit = () => renameSnapshot(snap.id, input.value.trim());
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") input.blur();
+        if (e.key === "Escape") { input.removeEventListener("blur", commit); renderSnapshots(); }
+      });
+      input.addEventListener("blur", commit);
+    });
+    top.appendChild(nameEl);
+
+    const actionsTop = document.createElement("div");
+    actionsTop.className = "snapshot-actions-top";
+
+    const starBtn = document.createElement("button");
+    starBtn.className = "star-btn" + (snap.favorite ? " active" : "");
+    starBtn.type = "button";
+    starBtn.title = "Mettre en favori (épingle en haut)";
+    starBtn.textContent = snap.favorite ? "★" : "☆";
+    starBtn.addEventListener("click", () => toggleFavoriteSnapshot(snap.id));
+    actionsTop.appendChild(starBtn);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "icon-btn";
+    delBtn.type = "button";
+    delBtn.textContent = "✕";
+    armTwoStepButton(delBtn, "✕", "Suppr. ?", () => deleteSnapshot(snap.id));
+    actionsTop.appendChild(delBtn);
+
+    top.appendChild(actionsTop);
+    card.appendChild(top);
+
+    const bottom = document.createElement("div");
+    bottom.className = "snapshot-card-bottom";
+
+    const dateEl = document.createElement("span");
+    dateEl.className = "snapshot-date";
+    dateEl.textContent = formatSnapshotDate(snap.createdAt);
+    bottom.appendChild(dateEl);
+
+    const actionsBottom = document.createElement("div");
+    actionsBottom.className = "snapshot-actions-bottom";
+    const loadBtn = document.createElement("button");
+    loadBtn.className = "snapshot-load-btn";
+    loadBtn.type = "button";
+    loadBtn.textContent = "Charger";
+    loadBtn.addEventListener("click", () => restoreSnapshot(snap.id));
+    actionsBottom.appendChild(loadBtn);
+    bottom.appendChild(actionsBottom);
+
+    card.appendChild(bottom);
+    return card;
+  }
+
+  function renderSnapshots() {
+    snapshotsList.innerHTML = "";
+    const snaps = STATE.snapshots || [];
+    if (snaps.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "snapshots-empty";
+      empty.textContent = "Aucune sauvegarde pour l'instant.";
+      snapshotsList.appendChild(empty);
+      return;
+    }
+    const favorites = snaps.filter((s) => s.favorite).sort((a, b) => b.createdAt - a.createdAt);
+    const others = snaps.filter((s) => !s.favorite).sort((a, b) => b.createdAt - a.createdAt);
+    [...favorites, ...others].forEach((s) => snapshotsList.appendChild(buildSnapshotCard(s)));
+  }
+
+  document.getElementById("newSnapshotBtn").addEventListener("click", createSnapshot);
 
   // --- Modal helpers ---
   function openModal(html, onMount) {
@@ -606,7 +1087,6 @@
     if (e.target === modalOverlay) closeModal();
   });
 
-  // --- Add person ---
   document.getElementById("addPersonBtn").addEventListener("click", () => {
     openModal(`
       <h2>Ajouter une personne</h2>
@@ -634,9 +1114,13 @@
       confirmBtn.addEventListener("click", () => {
         const name = input.value.trim();
         if (!name) return;
-        pool.appendChild(makePastille(name, recruterBox.checked));
-        sortPool();
-        updateCounts();
+        STATE.people.push({
+          id: genId("p"),
+          name,
+          recruter: recruterBox.checked,
+          location: "pool",
+        });
+        saveState();
         closeModal();
       });
       input.addEventListener("keydown", (e) => {
@@ -645,7 +1129,6 @@
     });
   });
 
-  // --- Add site ---
   document.getElementById("addSiteBtn").addEventListener("click", () => {
     const defaultColor = "#7e8ef1";
     openModal(`
@@ -685,14 +1168,15 @@
       confirmBtn.addEventListener("click", () => {
         const name = input.value.trim();
         if (!name) return;
-        siteCounter += 1;
-        const id = slugify(name) + "-" + siteCounter;
         const border = colorInput.value;
-        const bg = lightenHex(border, 0.85);
-        const site = { id, name, bg, border };
-        const el = buildSiteEl(site);
-        columnEls[Number(columnSelect.value)].appendChild(el);
-        updateCounts();
+        STATE.sites.push({
+          id: genId("site"),
+          name,
+          bg: lightenHex(border, 0.85),
+          border,
+          column: Number(columnSelect.value),
+        });
+        saveState();
         closeModal();
       });
       input.addEventListener("keydown", (e) => {
@@ -700,6 +1184,8 @@
       });
     });
   });
+
+  initFirebase();
 </script>
 
 </body>
