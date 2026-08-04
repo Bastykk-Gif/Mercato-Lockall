@@ -810,7 +810,19 @@ service cloud.firestore {
     const delBtn = document.createElement("button");
     delBtn.className = "pastille-del";
     delBtn.type = "button";
+    delBtn.draggable = false;
     delBtn.textContent = "✕";
+    // Belt-and-suspenders: while the pointer is pressing this button, make
+    // sure the parent pastille cannot be picked up as a drag source at all —
+    // this avoids the delete click ever being misread as "drag the person
+    // into another zone" (e.g. back into the pool) on an imprecise click.
+    delBtn.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      p.draggable = false;
+    });
+    delBtn.addEventListener("pointerup", () => {
+      setTimeout(() => { p.draggable = true; }, 0);
+    });
     delBtn.addEventListener("dragstart", (e) => {
       e.preventDefault();
       e.stopPropagation();
