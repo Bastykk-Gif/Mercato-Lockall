@@ -597,7 +597,14 @@ service cloud.firestore {
   // même : les modifications sont sauvegardées dans ce navigateur
   // (localStorage) mais ne sont pas partagées entre utilisateurs.
   // ============================================================
-  const FIREBASE_CONFIG = null;
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDTwb7HCSL4w74g6Nwn984ZHAQaewF-lqg",
+    authDomain: "mercato-lockall.firebaseapp.com",
+    projectId: "mercato-lockall",
+    storageBucket: "mercato-lockall.firebasestorage.app",
+    messagingSenderId: "748152189345",
+    appId: "1:748152189345:web:50eb09e4509e48b8f35be0",
+  };
 
   const LOCAL_STORAGE_KEY = "repartition-sites-state-v1";
 
