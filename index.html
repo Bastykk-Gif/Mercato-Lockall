@@ -259,32 +259,58 @@
   }
   .snapshot-load-btn:hover { background: #f0f0f0; }
 
-  #pool {
+  .pool-panel {
+    width: 220px;
+    flex-shrink: 0;
     background: var(--pool-bg);
-    border: 2px dashed var(--pool-border);
+    border: 1px solid var(--pool-border);
     border-radius: 12px;
-    padding: 14px;
+    padding: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .pool-panel {
+      width: 100%;
+    }
+  }
+
+  .pool-panel-header {
+    margin-bottom: 10px;
+  }
+
+  .pool-panel-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .pool-panel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  button.toolbar-btn.full {
+    width: 100%;
+  }
+
+  #pool {
+    border: 2px dashed var(--pool-border);
+    border-radius: 10px;
+    padding: 10px;
     min-height: 70px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-content: flex-start;
-    margin-bottom: 26px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     transition: background 0.15s ease;
   }
 
   #pool.drag-over {
     background: #e8eaed;
-  }
-
-  .pool-label {
-    width: 100%;
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 4px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
   }
 
   #sites-grid {
@@ -535,12 +561,9 @@
 </head>
 <body>
 
-  <h1>Répartition des personnes sur les sites</h1>
-  <p class="subtitle">Glissez-déposez les pastilles vers un site. Vous pouvez aussi les redéposer dans la zone « à répartir » ou les déplacer d'un site à l'autre.</p>
+  <h1>Mercato - Lockall</h1>
 
   <div class="toolbar">
-    <button class="toolbar-btn primary" id="addPersonBtn">+ Ajouter une personne</button>
-    <button class="toolbar-btn primary" id="addSiteBtn">+ Ajouter un site</button>
     <button class="toolbar-btn" id="resetBtn">Tout réinitialiser</button>
     <span id="syncBadge">…</span>
   </div>
@@ -568,17 +591,24 @@ service cloud.firestore {
   </details>
 
   <div class="page-layout">
-    <div class="main-col">
-      <div id="pool">
-        <div class="pool-label">À répartir</div>
+    <aside class="pool-panel">
+      <div class="pool-panel-header">
+        <span class="pool-panel-title">À répartir</span>
       </div>
+      <div class="pool-panel-actions">
+        <button class="toolbar-btn primary small full" id="addPersonBtn">+ Ajouter une personne</button>
+        <button class="toolbar-btn primary small full" id="addSiteBtn">+ Ajouter un site</button>
+      </div>
+      <div id="pool"></div>
+    </aside>
 
+    <div class="main-col">
       <div id="sites-grid"></div>
     </div>
 
     <aside class="snapshots-panel">
       <div class="snapshots-header">
-        <span>Sauvegardes</span>
+        <span>Sauvegarde</span>
         <button class="toolbar-btn primary small" id="newSnapshotBtn">+ Nouvelle</button>
       </div>
       <div class="snapshots-list" id="snapshotsList"></div>
@@ -834,10 +864,24 @@ service cloud.firestore {
       e.preventDefault();
       e.stopPropagation();
     });
-    armTwoStepButton(delBtn, "✕", "Suppr. ?", () => {
-      STATE.people = STATE.people.filter((x) => x.id !== person.id);
-      saveState();
-    });
+    if (person.location === "pool") {
+      // In "À répartir": the × permanently deletes the person, so it asks
+      // for a double validation (arm, then confirm).
+      delBtn.title = "Supprimer définitivement";
+      armTwoStepButton(delBtn, "✕", "Suppr. ?", () => {
+        STATE.people = STATE.people.filter((x) => x.id !== person.id);
+        saveState();
+      });
+    } else {
+      // On a site: the × just unassigns the person back to "À répartir" —
+      // a single click, no confirmation needed since nothing is deleted.
+      delBtn.title = "Retirer de ce site (retour à « À répartir »)";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        person.location = "pool";
+        saveState();
+      });
+    }
     p.appendChild(delBtn);
 
     p.draggable = true;
@@ -1014,8 +1058,9 @@ service cloud.firestore {
     const nameEl = document.createElement("span");
     nameEl.className = "snapshot-name";
     nameEl.textContent = snap.name;
-    nameEl.title = "Double-cliquer pour renommer";
-    nameEl.addEventListener("dblclick", () => {
+    top.appendChild(nameEl);
+
+    function startRename() {
       const input = document.createElement("input");
       input.className = "snapshot-name-input";
       input.type = "text";
@@ -1029,11 +1074,18 @@ service cloud.firestore {
         if (e.key === "Escape") { input.removeEventListener("blur", commit); renderSnapshots(); }
       });
       input.addEventListener("blur", commit);
-    });
-    top.appendChild(nameEl);
+    }
 
     const actionsTop = document.createElement("div");
     actionsTop.className = "snapshot-actions-top";
+
+    const renameBtn = document.createElement("button");
+    renameBtn.className = "star-btn";
+    renameBtn.type = "button";
+    renameBtn.title = "Renommer";
+    renameBtn.textContent = "✏️";
+    renameBtn.addEventListener("click", startRename);
+    actionsTop.appendChild(renameBtn);
 
     const starBtn = document.createElement("button");
     starBtn.className = "star-btn" + (snap.favorite ? " active" : "");
