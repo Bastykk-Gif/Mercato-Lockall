@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Répartition des personnes sur les sites</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --pool-bg: #f5f6f8;
+    --pool-border: #d1d5db;
+    --person-bg: #eef2f7;
+    --person-border: #90a4ae;
+    --person-text: #263238;
+    --recruter-bg: #ffe0b2;
+    --recruter-border: #fb8c00;
+    --recruter-text: #7a4100;
+    --danger: #d32f2f;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fafafa;
+    color: var(--ink);
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px 0;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 20px 0;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  button.toolbar-btn {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: var(--ink);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button.toolbar-btn:hover { background: #f0f0f0; }
+  button.toolbar-btn.primary {
+    background: #1f2937;
+    color: #fff;
+    border-color: #1f2937;
+  }
+  button.toolbar-btn.primary:hover { background: #374151; }
+
+  #pool {
+    background: var(--pool-bg);
+    border: 2px dashed var(--pool-border);
+    border-radius: 12px;
+    padding: 14px;
+    min-height: 70px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+    margin-bottom: 26px;
+    transition: background 0.15s ease;
+  }
+
+  #pool.drag-over {
+    background: #e8eaed;
+  }
+
+  .pool-label {
+    width: 100%;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  #sites-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    #sites-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .site-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .site {
+    border-radius: 14px;
+    border: 2px solid;
+    padding: 14px;
+    min-height: 110px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .site.drag-over {
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
+  }
+
+  .site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .site-name {
+    font-weight: 700;
+    font-size: 1rem;
+    flex: 1;
+  }
+
+  .site-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .site-count {
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: rgba(255,255,255,0.6);
+    border-radius: 999px;
+    padding: 1px 8px;
+    white-space: nowrap;
+  }
+
+  .icon-btn {
+    border: none;
+    background: rgba(255,255,255,0.55);
+    color: var(--muted);
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover {
+    background: rgba(255,255,255,0.9);
+  }
+  .icon-btn.armed {
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: auto;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+
+  .site-drop {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+    min-height: 40px;
+  }
+
+  .pastille {
+    padding: 5px 6px 5px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    background: var(--person-bg);
+    border: 1.5px solid var(--person-border);
+    color: var(--person-text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pastille.recruter {
+    background: var(--recruter-bg);
+    border-color: var(--recruter-border);
+    color: var(--recruter-text);
+  }
+
+  .pastille:active {
+    cursor: grabbing;
+  }
+
+  .pastille.dragging {
+    opacity: 0.4;
+  }
+
+  .pastille-del {
+    border: none;
+    background: rgba(0,0,0,0.08);
+    color: inherit;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .pastille-del:hover {
+    background: rgba(0,0,0,0.16);
+  }
+  .pastille-del.armed {
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    width: auto;
+    padding: 0 6px;
+    white-space: nowrap;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.hidden {
+    display: none;
+  }
+  .modal-box {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 22px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+  .modal-box h2 {
+    font-size: 1.05rem;
+    margin: 0 0 14px 0;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  .field input[type="text"],
+  .field select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 0.9rem;
+  }
+  .field-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .field-inline input[type="color"] {
+    width: 44px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 2px;
+    cursor: pointer;
+  }
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .modal-actions button {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid #d1d5db;
+    background: #fff;
+  }
+  .modal-actions button.confirm {
+    background: #1f2937;
+    color: #fff;
+    border-color: #1f2937;
+  }
+  .modal-actions button.confirm:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .modal-actions button:hover:not(:disabled) {
+    filter: brightness(0.95);
+  }
+
+</style>
+</head>
+<body>
+
+  <h1>Répartition des personnes sur les sites</h1>
+  <p class="subtitle">Glissez-déposez les pastilles vers un site. Vous pouvez aussi les redéposer dans la zone « à répartir » ou les déplacer d'un site à l'autre.</p>
+
+  <div class="toolbar">
+    <button class="toolbar-btn primary" id="addPersonBtn">+ Ajouter une personne</button>
+    <button class="toolbar-btn primary" id="addSiteBtn">+ Ajouter un site</button>
+    <button class="toolbar-btn" id="resetBtn">Tout réinitialiser</button>
+  </div>
+
+  <div id="pool">
+    <div class="pool-label">À répartir</div>
+  </div>
+
+  <div id="sites-grid"></div>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-box" id="modalBox"></div>
+  </div>
+
+<script>
+  const SITES = [
+    { id: "argenteuil", name: "Argenteuil",  bg: "#ffe3e8", border: "#fd6c7e" },
+    { id: "cergy",      name: "Cergy",       bg: "#fde3fb", border: "#fc76f4" },
+    { id: "paris8",     name: "Paris 8",     bg: "#e6f0ff", border: "#5ea3fc" },
+    { id: "paris13",    name: "Paris 13",    bg: "#eceff1", border: "#78909c" },
+    { id: "poissy",     name: "Poissy",      bg: "#ecffe0", border: "#86fb5b" },
+    { id: "velizy",     name: "Vélizy",      bg: "#e0fdff", border: "#48ecf5" },
+    { id: "lognes",     name: "Lognes",      bg: "#fff0fd", border: "#ffccff" },
+    { id: "suresnes",   name: "Suresnes",    bg: "#fffbdb", border: "#f8e717" },
+    { id: "perfcenter", name: "Perf Center", bg: "#e2f9ec", border: "#34d381" },
+  ];
+
+  const COLUMN_OF_SITE = {
+    argenteuil: 0, cergy: 0, poissy: 0, suresnes: 0,
+    lognes: 1, paris8: 1, paris13: 1, velizy: 1,
+    perfcenter: 2,
+  };
+
+  const PEOPLE = [
+    "Chamsidine", "Christ-Evan", "Mahamadou", "Karl-Yann", "Basma", "Bintou",
+    "Chiara", "Imane", "Maeliss", "Malcom", "Lyna", "Léo", "Nathan",
+    "Amauray", "Alyssandre", "Kessie", "Christian",
+    "Mohamed", "Onassis", "Sarra", "Alban", "Marouane",
+    "A recruter", "A recruter"
+  ];
+
+  const grid = document.getElementById("sites-grid");
+  const pool = document.getElementById("pool");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalBox = document.getElementById("modalBox");
+
+  let pastilleCounter = 0;
+  let siteCounter = 0;
+
+  // --- Columns setup ---
+  const columnEls = [0, 1, 2].map(() => {
+    const col = document.createElement("div");
+    col.className = "site-column";
+    grid.appendChild(col);
+    return col;
+  });
+
+  function slugify(str) {
+    return str
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "site";
+  }
+
+  function lightenHex(hex, ratio) {
+    const h = hex.replace("#", "");
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    const mix = (c) => Math.round(c + (255 - c) * ratio);
+    const toHex = (c) => c.toString(16).padStart(2, "0");
+    return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+  }
+
+  // --- Build a site element ---
+  function buildSiteEl(site) {
+    const el = document.createElement("div");
+    el.className = "site";
+    el.dataset.siteId = site.id;
+    el.style.background = site.bg;
+    el.style.borderColor = site.border;
+    el.innerHTML = `
+      <div class="site-header">
+        <span class="site-name">${site.name}</span>
+        <div class="site-header-right">
+          <span class="site-count" data-count>0</span>
+          <button class="icon-btn" data-del-site title="Supprimer ce site">✕</button>
+        </div>
+      </div>
+      <div class="site-drop" data-drop></div>
+    `;
+
+    const dropZone = el.querySelector("[data-drop]");
+    registerDropZone(dropZone);
+
+    const delBtn = el.querySelector("[data-del-site]");
+    armTwoStepButton(delBtn, "✕", "Confirmer ?", () => {
+      // Move all occupants back to the pool before removing the site
+      dropZone.querySelectorAll(".pastille").forEach(p => pool.appendChild(p));
+      sortPool();
+      el.remove();
+      updateCounts();
+    });
+
+    return el;
+  }
+
+  SITES.forEach(site => {
+    const el = buildSiteEl(site);
+    columnEls[COLUMN_OF_SITE[site.id] ?? 0].appendChild(el);
+  });
+
+  // --- Drag & drop ---
+  function registerDropZone(zone) {
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => {
+      zone.classList.remove("drag-over");
+    });
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const id = e.dataTransfer.getData("text/plain");
+      const dragged = document.getElementById(id);
+      if (dragged) {
+        zone.appendChild(dragged);
+        if (zone === pool) sortPool();
+        updateCounts();
+      }
+    });
+  }
+  registerDropZone(pool);
+
+  function makePastille(name, recruter) {
+    pastilleCounter += 1;
+    const p = document.createElement("div");
+    p.className = "pastille" + (recruter ? " recruter" : "");
+    p.id = "pastille-" + pastilleCounter;
+
+    const label = document.createElement("span");
+    label.textContent = name;
+    p.appendChild(label);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "pastille-del";
+    delBtn.type = "button";
+    delBtn.textContent = "✕";
+    // Prevent this button from ever initiating a native drag
+    delBtn.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    armTwoStepButton(delBtn, "✕", "Suppr. ?", () => {
+      p.remove();
+      updateCounts();
+    });
+    p.appendChild(delBtn);
+
+    p.draggable = true;
+    p.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", p.id);
+      e.dataTransfer.effectAllowed = "move";
+      setTimeout(() => p.classList.add("dragging"), 0);
+    });
+    p.addEventListener("dragend", () => {
+      p.classList.remove("dragging");
+    });
+    return p;
+  }
+
+  PEOPLE.forEach((name) => {
+    pool.appendChild(makePastille(name, name === "A recruter"));
+  });
+
+  function sortPool() {
+    const pastilles = Array.from(pool.querySelectorAll(".pastille"));
+    pastilles.sort((a, b) => {
+      const an = a.querySelector("span").textContent;
+      const bn = b.querySelector("span").textContent;
+      return an.localeCompare(bn, "fr", { sensitivity: "base" });
+    });
+    pastilles.forEach(p => pool.appendChild(p));
+  }
+
+  sortPool();
+
+  function updateCounts() {
+    document.querySelectorAll(".site").forEach(site => {
+      const count = site.querySelectorAll(".pastille").length;
+      site.querySelector("[data-count]").textContent = count;
+    });
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    document.querySelectorAll(".pastille").forEach(p => pool.appendChild(p));
+    sortPool();
+    updateCounts();
+  });
+
+  updateCounts();
+
+  // --- Two-step ("double validation") delete buttons ---
+  // Click once arms the button (shows a confirm label); click again within
+  // the window performs the action. Clicking anywhere else cancels it.
+  const armedButtons = new Set();
+
+  function armTwoStepButton(btn, idleLabel, confirmLabel, onConfirm) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (btn.classList.contains("armed")) {
+        disarm(btn, idleLabel);
+        onConfirm();
+      } else {
+        // Disarm any other armed button first
+        armedButtons.forEach(other => {
+          if (other !== btn) disarmEntry(other);
+        });
+        btn.classList.add("armed");
+        btn.textContent = confirmLabel;
+        const timeoutId = setTimeout(() => disarm(btn, idleLabel), 3500);
+        armedButtons.add(btn);
+        btn._twoStepTimeout = timeoutId;
+        btn._twoStepIdleLabel = idleLabel;
+      }
+    });
+  }
+
+  function disarm(btn, idleLabel) {
+    btn.classList.remove("armed");
+    btn.textContent = idleLabel;
+    clearTimeout(btn._twoStepTimeout);
+    armedButtons.delete(btn);
+  }
+
+  function disarmEntry(btn) {
+    disarm(btn, btn._twoStepIdleLabel || "✕");
+  }
+
+  document.addEventListener("click", () => {
+    armedButtons.forEach(btn => disarmEntry(btn));
+  });
+
+  // --- Modal helpers ---
+  function openModal(html, onMount) {
+    modalBox.innerHTML = html;
+    modalOverlay.classList.remove("hidden");
+    onMount(modalBox);
+  }
+  function closeModal() {
+    modalOverlay.classList.add("hidden");
+    modalBox.innerHTML = "";
+  }
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  // --- Add person ---
+  document.getElementById("addPersonBtn").addEventListener("click", () => {
+    openModal(`
+      <h2>Ajouter une personne</h2>
+      <div class="field">
+        <label for="newPersonName">Nom</label>
+        <input type="text" id="newPersonName" placeholder="Ex. Sofiane" autofocus>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="newPersonRecruter">
+        <label for="newPersonRecruter">Poste « À recruter » (couleur différente)</label>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelAddPerson">Annuler</button>
+        <button class="confirm" id="confirmAddPerson" disabled>Ajouter</button>
+      </div>
+    `, (box) => {
+      const input = box.querySelector("#newPersonName");
+      const recruterBox = box.querySelector("#newPersonRecruter");
+      const confirmBtn = box.querySelector("#confirmAddPerson");
+      input.addEventListener("input", () => {
+        confirmBtn.disabled = input.value.trim().length === 0;
+      });
+      input.focus();
+      box.querySelector("#cancelAddPerson").addEventListener("click", closeModal);
+      confirmBtn.addEventListener("click", () => {
+        const name = input.value.trim();
+        if (!name) return;
+        pool.appendChild(makePastille(name, recruterBox.checked));
+        sortPool();
+        updateCounts();
+        closeModal();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !confirmBtn.disabled) confirmBtn.click();
+      });
+    });
+  });
+
+  // --- Add site ---
+  document.getElementById("addSiteBtn").addEventListener("click", () => {
+    const defaultColor = "#7e8ef1";
+    openModal(`
+      <h2>Ajouter un site</h2>
+      <div class="field">
+        <label for="newSiteName">Nom du site</label>
+        <input type="text" id="newSiteName" placeholder="Ex. Nanterre" autofocus>
+      </div>
+      <div class="field">
+        <label for="newSiteColor">Couleur</label>
+        <div class="field-inline">
+          <input type="color" id="newSiteColor" value="${defaultColor}">
+        </div>
+      </div>
+      <div class="field">
+        <label for="newSiteColumn">Colonne</label>
+        <select id="newSiteColumn">
+          <option value="0">Colonne 1</option>
+          <option value="1">Colonne 2</option>
+          <option value="2">Colonne 3</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelAddSite">Annuler</button>
+        <button class="confirm" id="confirmAddSite" disabled>Ajouter</button>
+      </div>
+    `, (box) => {
+      const input = box.querySelector("#newSiteName");
+      const colorInput = box.querySelector("#newSiteColor");
+      const columnSelect = box.querySelector("#newSiteColumn");
+      const confirmBtn = box.querySelector("#confirmAddSite");
+      input.addEventListener("input", () => {
+        confirmBtn.disabled = input.value.trim().length === 0;
+      });
+      input.focus();
+      box.querySelector("#cancelAddSite").addEventListener("click", closeModal);
+      confirmBtn.addEventListener("click", () => {
+        const name = input.value.trim();
+        if (!name) return;
+        siteCounter += 1;
+        const id = slugify(name) + "-" + siteCounter;
+        const border = colorInput.value;
+        const bg = lightenHex(border, 0.85);
+        const site = { id, name, bg, border };
+        const el = buildSiteEl(site);
+        columnEls[Number(columnSelect.value)].appendChild(el);
+        updateCounts();
+        closeModal();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !confirmBtn.disabled) confirmBtn.click();
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
