@@ -258,6 +258,12 @@
     cursor: pointer;
   }
   .snapshot-load-btn:hover { background: #f0f0f0; }
+  .snapshot-load-btn.armed {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    font-weight: 700;
+  }
 
   .pool-panel {
     width: 220px;
@@ -1029,6 +1035,14 @@ service cloud.firestore {
     saveState();
   }
 
+  function updateSnapshotData(id) {
+    const snap = STATE.snapshots.find((s) => s.id === id);
+    if (!snap) return;
+    snap.data = deepClone({ sites: STATE.sites, people: STATE.people });
+    snap.updatedAt = Date.now();
+    saveState();
+  }
+
   function renameSnapshot(id, name) {
     const snap = STATE.snapshots.find((s) => s.id === id);
     if (!snap) return;
@@ -1110,17 +1124,29 @@ service cloud.firestore {
 
     const dateEl = document.createElement("span");
     dateEl.className = "snapshot-date";
-    dateEl.textContent = formatSnapshotDate(snap.createdAt);
+    const dateLabel = snap.updatedAt ? "Maj " : "";
+    dateEl.textContent = dateLabel + formatSnapshotDate(snap.updatedAt || snap.createdAt);
     bottom.appendChild(dateEl);
 
     const actionsBottom = document.createElement("div");
     actionsBottom.className = "snapshot-actions-bottom";
+
+    const saveHereBtn = document.createElement("button");
+    saveHereBtn.className = "snapshot-load-btn";
+    saveHereBtn.type = "button";
+    saveHereBtn.textContent = "Maj.";
+    saveHereBtn.title = "Écraser cette sauvegarde avec l'état actuel";
+    armTwoStepButton(saveHereBtn, "Maj.", "Écraser ?", () => updateSnapshotData(snap.id));
+    actionsBottom.appendChild(saveHereBtn);
+
     const loadBtn = document.createElement("button");
     loadBtn.className = "snapshot-load-btn";
     loadBtn.type = "button";
     loadBtn.textContent = "Charger";
-    loadBtn.addEventListener("click", () => restoreSnapshot(snap.id));
+    loadBtn.title = "Remplacer l'état actuel par cette sauvegarde";
+    armTwoStepButton(loadBtn, "Charger", "Confirmer ?", () => restoreSnapshot(snap.id));
     actionsBottom.appendChild(loadBtn);
+
     bottom.appendChild(actionsBottom);
 
     card.appendChild(bottom);
