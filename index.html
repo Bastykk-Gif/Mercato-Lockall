@@ -174,6 +174,19 @@
     gap: 4px;
     aspect-ratio: 16 / 7;
     justify-content: space-between;
+    cursor: grab;
+  }
+
+  .snapshot-card:active {
+    cursor: grabbing;
+  }
+
+  .snapshot-card.dragging {
+    opacity: 0.4;
+  }
+
+  .snapshot-card.drop-target-blocked {
+    cursor: no-drop;
   }
 
   .snapshot-card.favorite {
@@ -727,6 +740,16 @@ service cloud.firestore {
 
   function ensureSnapshots() {
     if (!Array.isArray(STATE.snapshots)) STATE.snapshots = [];
+    // One-time migration: snapshots used to always be displayed sorted by
+    // date (newest first). Now their on-screen order is whatever the user
+    // drags it to, and that order is simply the array order. The very
+    // first time this runs on old data, sort once so the initial manual
+    // order matches what people were used to seeing; after that the flag
+    // prevents this from ever re-sorting and undoing a manual drag.
+    if (!STATE._snapshotsManualOrder) {
+      STATE.snapshots.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      STATE._snapshotsManualOrder = true;
+    }
   }
 
   // --- Remote (Firebase) wiring ---
@@ -1016,7 +1039,10 @@ service cloud.firestore {
 
   function createSnapshot() {
     const now = Date.now();
-    STATE.snapshots.push({
+    // unshift (not push): new snapshots appear at the top of their group
+    // by default, matching the old "newest first" behaviour, while still
+    // leaving the array order fully drag-reorderable afterwards.
+    STATE.snapshots.unshift({
       id: genId("snap"),
       name: "Sauvegarde du " + formatSnapshotDate(now),
       favorite: false,
@@ -1062,9 +1088,35 @@ service cloud.firestore {
     saveState();
   }
 
+  // Prevents an interactive control (button, text input) inside a
+  // draggable card from ever being misread as "start dragging the card" —
+  // same pattern already used for the pastille delete button above.
+  function guardCardDrag(el, card) {
+    el.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      card.draggable = false;
+    });
+    el.addEventListener("pointerup", () => {
+      setTimeout(() => { card.draggable = true; }, 0);
+    });
+  }
+
   function buildSnapshotCard(snap) {
     const card = document.createElement("div");
     card.className = "snapshot-card" + (snap.favorite ? " favorite" : "");
+    card.draggable = true;
+    card.dataset.snapshotId = snap.id;
+    card.dataset.favorite = snap.favorite ? "1" : "0";
+
+    card.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", snap.id);
+      e.dataTransfer.effectAllowed = "move";
+      setTimeout(() => card.classList.add("dragging"), 0);
+    });
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+      finalizeSnapshotReorder();
+    });
 
     const top = document.createElement("div");
     top.className = "snapshot-card-top";
@@ -1079,13 +1131,14 @@ service cloud.firestore {
       input.className = "snapshot-name-input";
       input.type = "text";
       input.value = snap.name;
+      card.draggable = false;
       nameEl.replaceWith(input);
       input.focus();
       input.select();
-      const commit = () => renameSnapshot(snap.id, input.value.trim());
+      const commit = () => { card.draggable = true; renameSnapshot(snap.id, input.value.trim()); };
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") input.blur();
-        if (e.key === "Escape") { input.removeEventListener("blur", commit); renderSnapshots(); }
+        if (e.key === "Escape") { input.removeEventListener("blur", commit); card.draggable = true; renderSnapshots(); }
       });
       input.addEventListener("blur", commit);
     }
@@ -1099,6 +1152,7 @@ service cloud.firestore {
     renameBtn.title = "Renommer";
     renameBtn.textContent = "✏️";
     renameBtn.addEventListener("click", startRename);
+    guardCardDrag(renameBtn, card);
     actionsTop.appendChild(renameBtn);
 
     const starBtn = document.createElement("button");
@@ -1107,6 +1161,7 @@ service cloud.firestore {
     starBtn.title = "Mettre en favori (épingle en haut)";
     starBtn.textContent = snap.favorite ? "★" : "☆";
     starBtn.addEventListener("click", () => toggleFavoriteSnapshot(snap.id));
+    guardCardDrag(starBtn, card);
     actionsTop.appendChild(starBtn);
 
     const delBtn = document.createElement("button");
@@ -1114,6 +1169,7 @@ service cloud.firestore {
     delBtn.type = "button";
     delBtn.textContent = "✕";
     armTwoStepButton(delBtn, "✕", "Suppr. ?", () => deleteSnapshot(snap.id));
+    guardCardDrag(delBtn, card);
     actionsTop.appendChild(delBtn);
 
     top.appendChild(actionsTop);
@@ -1137,6 +1193,7 @@ service cloud.firestore {
     saveHereBtn.textContent = "Maj.";
     saveHereBtn.title = "Écraser cette sauvegarde avec l'état actuel";
     armTwoStepButton(saveHereBtn, "Maj.", "Écraser ?", () => updateSnapshotData(snap.id));
+    guardCardDrag(saveHereBtn, card);
     actionsBottom.appendChild(saveHereBtn);
 
     const loadBtn = document.createElement("button");
@@ -1145,6 +1202,7 @@ service cloud.firestore {
     loadBtn.textContent = "Charger";
     loadBtn.title = "Remplacer l'état actuel par cette sauvegarde";
     armTwoStepButton(loadBtn, "Charger", "Confirmer ?", () => restoreSnapshot(snap.id));
+    guardCardDrag(loadBtn, card);
     actionsBottom.appendChild(loadBtn);
 
     bottom.appendChild(actionsBottom);
@@ -1163,12 +1221,55 @@ service cloud.firestore {
       snapshotsList.appendChild(empty);
       return;
     }
-    const favorites = snaps.filter((s) => s.favorite).sort((a, b) => b.createdAt - a.createdAt);
-    const others = snaps.filter((s) => !s.favorite).sort((a, b) => b.createdAt - a.createdAt);
+    // Favoris toujours épinglés en haut ; à l'intérieur de chaque groupe
+    // (favoris / autres), l'ordre affiché est simplement l'ordre du
+    // tableau STATE.snapshots, modifiable en glissant les cartes.
+    const favorites = snaps.filter((s) => s.favorite);
+    const others = snaps.filter((s) => !s.favorite);
     [...favorites, ...others].forEach((s) => snapshotsList.appendChild(buildSnapshotCard(s)));
   }
 
   document.getElementById("newSnapshotBtn").addEventListener("click", createSnapshot);
+
+  // --- Drag-to-reorder snapshot cards ---
+  // Cards are reordered live while dragging (the DOM is the preview), then
+  // on drop/dragend the underlying STATE.snapshots array is rewritten to
+  // match the final DOM order and persisted. Dragging a card is only
+  // allowed to reposition it among cards of the same group (favori vs
+  // non-favori) so it can never silently jump into the other group.
+  function finalizeSnapshotReorder() {
+    const orderedIds = Array.from(snapshotsList.querySelectorAll(".snapshot-card"))
+      .map((el) => el.dataset.snapshotId);
+    if (orderedIds.length === 0) return;
+    const byId = new Map(STATE.snapshots.map((s) => [s.id, s]));
+    const reordered = orderedIds.map((id) => byId.get(id)).filter(Boolean);
+    // Safety net: keep any snapshot not currently in the DOM (shouldn't
+    // happen) rather than silently losing it.
+    STATE.snapshots.forEach((s) => { if (!reordered.includes(s)) reordered.push(s); });
+    const changed = reordered.some((s, i) => s !== STATE.snapshots[i]);
+    STATE.snapshots = reordered;
+    if (changed) saveState();
+  }
+
+  snapshotsList.addEventListener("dragover", (e) => {
+    const draggingCard = snapshotsList.querySelector(".snapshot-card.dragging");
+    if (!draggingCard) return;
+    e.preventDefault();
+    const target = e.target.closest(".snapshot-card");
+    if (!target || target === draggingCard) return;
+    if (target.dataset.favorite !== draggingCard.dataset.favorite) return;
+    const rect = target.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    if (before) {
+      target.before(draggingCard);
+    } else {
+      target.after(draggingCard);
+    }
+  });
+  snapshotsList.addEventListener("drop", (e) => {
+    e.preventDefault();
+    finalizeSnapshotReorder();
+  });
 
   // --- Modal helpers ---
   function openModal(html, onMount) {
